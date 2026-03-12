@@ -100,6 +100,7 @@ async def start_stream():
 
     # Start the chat listener in the background
     active_chat_task = asyncio.create_task(chat_listener(video_id))
+    await manager.broadcast({"type": "status", "status": "connected"}) # ADD THIS
     return {"status": "Success", "video_id": video_id}
 
 @app.get("/stop")
@@ -107,6 +108,7 @@ async def stop_stream():
     global active_chat_task
     if active_chat_task and not active_chat_task.done():
         active_chat_task.cancel()
+        await manager.broadcast({"type": "status", "status": "disconnected"})
         return {"status": "Stopped monitoring chat."}
     return {"status": "No active chat monitor to stop."}
 

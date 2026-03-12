@@ -1,24 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
-    <link href="/static/style.css" rel="stylesheet">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/static/icon-192.png" />
+    <link href="/static/style.css" rel="stylesheet" />
     <title>Stream Chat</title>
-</head>
-<body>
+  </head>
+  <body>
+    <div
+      id="status-container"
+      style="padding: 10px; display: flex; align-items: center; gap: 8px"
+    >
+      <div
+        id="status-dot"
+        style="
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background-color: red;
+        "
+      ></div>
+      <span id="status-text" style="font-size: 14px; color: #888"
+        >Disconnected</span
+      >
+    </div>
     <div id="messages"></div>
     <script src="/static/script.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW registered!', reg))
-                    .catch(err => console.log('SW reg error:', err));
-            });
-        }
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => console.log("SW registered!", reg))
+            .catch((err) => console.log("SW reg error:", err));
+        });
+      }
     </script>
-</body>
+  </body>
 </html>
