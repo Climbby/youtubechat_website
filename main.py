@@ -97,24 +97,24 @@ templates = Jinja2Templates(directory="templates")
 # --- WEBHOOK ENDPOINTS ---
 
 @app.get("/start")
-async def start_stream():
+async def start_stream(video_id: str = None):
     global active_chat_task
     
     if active_chat_task and not active_chat_task.done():
         return {"status": "Chat is already being monitored."}
 
-    # Run the blocking web scraper in a background thread
-    video_id = await asyncio.to_thread(get_live_video_id)
+    # Use the provided ID, or scrape it if none is provided
+    target_id = video_id if video_id else await asyncio.to_thread(get_live_video_id)
     
-    if not video_id:
-        return {"status": "Error: Could not find a live stream. Make sure you are live first."}
+    if not target_id:
+        return {"status": "Error: Could not find a live stream."}
 
-    active_chat_task = asyncio.create_task(chat_listener(video_id))
+    active_chat_task = asyncio.create_task(chat_listener(target_id))
     
-    # Broadcast status change if you added the green/red dot code
+    # Broadcast status change
     await manager.broadcast({"type": "status", "status": "connected"})
     
-    return {"status": "Success", "video_id": video_id}
+    return {"status": "Success", "video_id": target_id}
 
 @app.get("/stop")
 async def stop_stream():
