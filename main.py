@@ -44,15 +44,13 @@ def get_live_video_id():
     return None
 
 async def chat_listener(video_id: str):
-    """Connects to the chat and broadcasts messages."""
+    global active_chat_task
     print(f"Connecting to chat for stream: {video_id}")
     
-    # Run the blocking setup in a background thread
-    chat = await asyncio.to_thread(pytchat.create, video_id=video_id)
-    
     try:
+        chat = await asyncio.to_thread(pytchat.create, video_id=video_id)
+        
         while chat.is_alive():
-            # Fetch chat data in a background thread so the website doesn't freeze
             chat_data = await asyncio.to_thread(chat.get)
             
             for c in chat_data.sync_items():
@@ -82,8 +80,15 @@ async def chat_listener(video_id: str):
                     "message": full_message
                 })
             await asyncio.sleep(0.5)
+            
     except asyncio.CancelledError:
         print("Chat listener stopped.")
+    except Exception as e:
+        # This will tell us exactly why it is crashing!
+        print(f"CRASH ERROR: {e}") 
+    finally:
+        # Turn the dot red if it stops or crashes
+        await manager.broadcast({"type": "status", "status": "disconnected"})
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -139,6 +144,14 @@ async def service_worker():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+    
+    # Send the current status immediately upon connection
+    global active_chat_task
+    if active_chat_task and not active_chat_task.done():
+        await websocket.send_json({"type": "status", "status": "connected"})
+    else:
+        await websocket.send_json({"type": "status", "status": "disconnected"})
+
     try:
         while True:
             await websocket.receive_text()
