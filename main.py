@@ -46,11 +46,16 @@ def get_live_video_id():
 async def chat_listener(video_id: str):
     """Connects to the chat and broadcasts messages."""
     print(f"Connecting to chat for stream: {video_id}")
-    chat = pytchat.create(video_id=video_id)
+    
+    # Run the blocking setup in a background thread
+    chat = await asyncio.to_thread(pytchat.create, video_id=video_id)
     
     try:
         while chat.is_alive():
-            for c in chat.get().sync_items():
+            # Fetch chat data in a background thread so the website doesn't freeze
+            chat_data = await asyncio.to_thread(chat.get)
+            
+            for c in chat_data.sync_items():
                 full_message = ""
                 try:
                     for part in c.messageEx:
@@ -90,17 +95,20 @@ templates = Jinja2Templates(directory="templates")
 async def start_stream():
     global active_chat_task
     
-    # Don't start a new listener if one is already running
     if active_chat_task and not active_chat_task.done():
         return {"status": "Chat is already being monitored."}
 
-    video_id = get_live_video_id()
+    # Run the blocking web scraper in a background thread
+    video_id = await asyncio.to_thread(get_live_video_id)
+    
     if not video_id:
         return {"status": "Error: Could not find a live stream. Make sure you are live first."}
 
-    # Start the chat listener in the background
     active_chat_task = asyncio.create_task(chat_listener(video_id))
-    await manager.broadcast({"type": "status", "status": "connected"}) # ADD THIS
+    
+    # Broadcast status change if you added the green/red dot code
+    await manager.broadcast({"type": "status", "status": "connected"})
+    
     return {"status": "Success", "video_id": video_id}
 
 @app.get("/stop")
