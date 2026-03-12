@@ -1,12 +1,14 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles # New import
+from fastapi.staticfiles import StaticFiles
 
 import pytchat
 import asyncio
-from contextlib import asynccontextmanager
+import requests
+import re
 
-VIDEO_ID = "XSXEaikz0Bc"
+# Replace with your actual handle
+CHANNEL_HANDLE = "@climbby"
 
 class ConnectionManager:
     def __init__(self):
@@ -27,11 +29,27 @@ class ConnectionManager:
                 pass
 
 manager = ConnectionManager()
+active_chat_task = None
 
-async def fetch_youtube_chat():
-    chat = pytchat.create(video_id=VIDEO_ID)
-    while True:
-        if chat.is_alive():
+def get_live_video_id():
+    """Scrapes the channel's live URL to find the active stream ID."""
+    try:
+        url = f"https://www.youtube.com/{CHANNEL_HANDLE}/live"
+        response = requests.get(url, timeout=5)
+        match = re.search(r'"videoId":"([a-zA-Z0-9_-]{11})"', response.text)
+        if match:
+            return match.group(1)
+    except Exception as e:
+        print(f"Error fetching live ID: {e}")
+    return None
+
+async def chat_listener(video_id: str):
+    """Connects to the chat and broadcasts messages."""
+    print(f"Connecting to chat for stream: {video_id}")
+    chat = pytchat.create(video_id=video_id)
+    
+    try:
+        while chat.is_alive():
             for c in chat.get().sync_items():
                 full_message = ""
                 try:
@@ -39,14 +57,12 @@ async def fetch_youtube_chat():
                         if isinstance(part, str):
                             full_message += part
                         elif isinstance(part, dict):
-                            # Try multiple keys just in case
                             url = part.get("url") or part.get("src")
                             if url:
                                 full_message += f'<img class="emoji" src="{url}">'
                             else:
                                 full_message += part.get("txt", "")
                         else:
-                            # Try attribute access for objects
                             url = getattr(part, "url", None) or getattr(part, "src", None)
                             if url:
                                 full_message += f'<img class="emoji" src="{url}">'
@@ -60,21 +76,41 @@ async def fetch_youtube_chat():
                     "authorImage": c.author.imageUrl,
                     "message": full_message
                 })
-        else:
-            await asyncio.sleep(5)
-            chat = pytchat.create(video_id=VIDEO_ID)
-        await asyncio.sleep(0.5)
+            await asyncio.sleep(0.5)
+    except asyncio.CancelledError:
+        print("Chat listener stopped.")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Start background task
-    task = asyncio.create_task(fetch_youtube_chat())
-    yield
-    task.cancel()
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+# --- WEBHOOK ENDPOINTS ---
+
+@app.get("/start")
+async def start_stream():
+    global active_chat_task
+    
+    # Don't start a new listener if one is already running
+    if active_chat_task and not active_chat_task.done():
+        return {"status": "Chat is already being monitored."}
+
+    video_id = get_live_video_id()
+    if not video_id:
+        return {"status": "Error: Could not find a live stream. Make sure you are live first."}
+
+    # Start the chat listener in the background
+    active_chat_task = asyncio.create_task(chat_listener(video_id))
+    return {"status": "Success", "video_id": video_id}
+
+@app.get("/stop")
+async def stop_stream():
+    global active_chat_task
+    if active_chat_task and not active_chat_task.done():
+        active_chat_task.cancel()
+        return {"status": "Stopped monitoring chat."}
+    return {"status": "No active chat monitor to stop."}
+
+# --- STANDARD ENDPOINTS ---
 
 @app.get("/")
 async def get(request: Request):
@@ -95,7 +131,6 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # Keep the connection open
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
