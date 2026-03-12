@@ -48,7 +48,7 @@ async def chat_listener(video_id: str):
     print(f"Connecting to chat for stream: {video_id}")
     
     try:
-        chat = await asyncio.to_thread(pytchat.create, video_id=video_id)
+        chat = await asyncio.to_thread(pytchat.create, video_id=video_id, interruptable=False)
         
         while chat.is_alive():
             chat_data = await asyncio.to_thread(chat.get)
