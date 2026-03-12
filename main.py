@@ -80,6 +80,16 @@ templates = Jinja2Templates(directory="templates")
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/manifest.json")
+async def manifest():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/manifest.json")
+
+@app.get("/sw.js")
+async def service_worker():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/sw.js")
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)

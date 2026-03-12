@@ -2,11 +2,23 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <link href="/static/style.css" rel="stylesheet">
     <title>Stream Chat</title>
 </head>
 <body>
     <div id="messages"></div>
     <script src="/static/script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered!', reg))
+                    .catch(err => console.log('SW reg error:', err));
+            });
+        }
+    </script>
 </body>
 </html>
