@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from collections import deque
 
 import pytchat
 import asyncio
@@ -13,6 +14,7 @@ CHANNEL_HANDLE = "@climbby"
 class ConnectionManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []
+        self.message_history = deque(maxlen=50)
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -22,6 +24,9 @@ class ConnectionManager:
         self.active_connections.remove(websocket)
 
     async def broadcast(self, message: dict):
+        if message.get("type") != "status":
+            self.message_history.append(message)
+
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
@@ -152,6 +157,9 @@ async def websocket_endpoint(websocket: WebSocket):
     else:
         await websocket.send_json({"type": "status", "status": "disconnected"})
 
+    for msg in manager.message_history:
+        await websocket.send_json(msg)
+        
     try:
         while True:
             await websocket.receive_text()

@@ -26,6 +26,10 @@ function connect() {
         return; // Stop processing since this isn't a chat message
       }
 
+      const isAtBottom =
+        Math.abs(
+          window.innerHeight + window.scrollY - document.body.offsetHeight,
+        ) <= 50;
       const messageLine = document.createElement("div");
       messageLine.className = "message-line";
 
@@ -59,7 +63,9 @@ function connect() {
         messages.removeChild(messages.firstChild);
       }
 
-      window.scrollTo(0, document.body.scrollHeight);
+      if (isAtBottom) {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
     } catch (err) {
       console.error("Error processing message:", err);
     }
