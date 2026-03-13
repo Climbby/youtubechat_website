@@ -2,6 +2,22 @@ const messages = document.getElementById("messages");
 const MAX_MESSAGES = 100;
 let ws;
 let reconnectInterval = 1000;
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+
+      // Listen for the lock being released (e.g., if the user switches tabs)
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    }
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
+}
 
 function connect() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -19,6 +35,7 @@ function connect() {
         if (data.status === "connected") {
           dot.style.backgroundColor = "#00ff00"; // Green
           text.textContent = "Monitoring Chat";
+          requestWakeLock();
         } else {
           dot.style.backgroundColor = "red";
           text.textContent = "Disconnected";
@@ -105,4 +122,11 @@ function renderSafeMessage(container, message) {
   });
 }
 
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    requestWakeLock();
+  }
+});
+
 connect();
+requestWakeLock();
