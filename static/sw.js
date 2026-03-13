@@ -1,4 +1,4 @@
-const CACHE_NAME = "stream-chat-v2";
+const CACHE_NAME = "stream-chat-v3";
 const ASSETS = [
   "/",
   "/static/style.css",
@@ -20,5 +20,20 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
     }),
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log("Deleting old cache:", cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
   );
 });
