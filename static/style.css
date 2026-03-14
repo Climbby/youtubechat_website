@@ -1,9 +1,75 @@
-body { background-color: #121212; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 22px; line-height: 1.4; padding: 15px; }
-#messages { display: flex; flex-direction: column; gap: 4px; }
-.message-line { display: flex; align-items: flex-start; gap: 10px; padding: 6px 10px; border-radius: 6px; transition: background-color 0.2s ease; }
-.message-line:nth-child(even) { background-color: rgba(255, 255, 255, 0.05); }
-.profile-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-top: 2px; }
-.content-wrapper { display: inline; }
-.author { color: #82aaff; font-weight: 600; margin-right: 8px; }
-.text { word-break: break-word; color: #e0e0e0; }
-.emoji { height: 1.2em; width: auto; vertical-align: middle; border: none !important; background: transparent !important; }
+body {
+  background-color: #121212;
+  color: #e0e0e0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 22px;
+  line-height: 1.4;
+  padding: 15px;
+  margin: 0;
+}
+#navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  z-index: 1000;
+  box-sizing: border-box;
+  border-bottom: 1px solid #333;
+}
+#status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: red;
+}
+#messages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 50px;
+}
+.message-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+.message-line:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.profile-pic {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.content-wrapper {
+  display: inline;
+}
+.author {
+  color: #82aaff;
+  font-weight: 600;
+  margin-right: 8px;
+}
+.text {
+  word-break: break-word;
+  color: #e0e0e0;
+}
+.emoji {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+  border: none !important;
+  background: transparent !important;
+}

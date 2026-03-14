@@ -31,14 +31,11 @@ function connect() {
 
       if (data.type === "status") {
         const dot = document.getElementById("status-dot");
-        const text = document.getElementById("status-text");
         if (data.status === "connected") {
           dot.style.backgroundColor = "#00ff00"; // Green
-          text.textContent = "Monitoring Chat";
           requestWakeLock();
         } else {
           dot.style.backgroundColor = "red";
-          text.textContent = "Disconnected";
         }
         return; // Stop processing since this isn't a chat message
       }
