@@ -1,4 +1,4 @@
-const CACHE_NAME = "stream-chat-v4";
+const CACHE_NAME = "stream-chat-v5";
 const ASSETS = [
   "/",
   "/static/style.css",
