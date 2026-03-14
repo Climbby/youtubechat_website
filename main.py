@@ -53,46 +53,49 @@ async def chat_listener(video_id: str):
     print(f"Connecting to chat for stream: {video_id}")
     
     try:
-        chat = await asyncio.to_thread(pytchat.create, video_id=video_id, interruptable=False)
-        
-        while chat.is_alive():
-            chat_data = await asyncio.to_thread(chat.get)
+        while True:
+            chat = await asyncio.to_thread(pytchat.create, video_id=video_id, interruptable=False)
             
-            for c in chat_data.sync_items():
-                full_message = ""
-                try:
-                    for part in c.messageEx:
-                        if isinstance(part, str):
-                            full_message += part
-                        elif isinstance(part, dict):
-                            url = part.get("url") or part.get("src")
-                            if url:
-                                full_message += f'<img class="emoji" src="{url}">'
-                            else:
-                                full_message += part.get("txt", "")
-                        else:
-                            url = getattr(part, "url", None) or getattr(part, "src", None)
-                            if url:
-                                full_message += f'<img class="emoji" src="{url}">'
-                            else:
-                                full_message += getattr(part, "txt", str(part))
-                except Exception:
-                    full_message = c.message
+            while chat.is_alive():
+                chat_data = await asyncio.to_thread(chat.get)
                 
-                await manager.broadcast({
-                    "author": c.author.name,
-                    "authorImage": c.author.imageUrl,
-                    "message": full_message
-                })
-            await asyncio.sleep(0.5)
+                for c in chat_data.sync_items():
+                    full_message = ""
+                    try:
+                        for part in c.messageEx:
+                            if isinstance(part, str):
+                                full_message += part
+                            elif isinstance(part, dict):
+                                url = part.get("url") or part.get("src")
+                                if url:
+                                    full_message += f'<img class="emoji" src="{url}">'
+                                else:
+                                    full_message += part.get("txt", "")
+                            else:
+                                url = getattr(part, "url", None) or getattr(part, "src", None)
+                                if url:
+                                    full_message += f'<img class="emoji" src="{url}">'
+                                else:
+                                    full_message += getattr(part, "txt", str(part))
+                    except Exception:
+                        full_message = c.message
+                    
+                    await manager.broadcast({
+                        "author": c.author.name,
+                        "authorImage": c.author.imageUrl,
+                        "message": full_message
+                    })
+                await asyncio.sleep(0.5)
+            
+            # If the code reaches here, YouTube dropped the connection.
+            print("Connection lost or session expired. Reconnecting in 5 seconds...")
+            await asyncio.sleep(5)
             
     except asyncio.CancelledError:
         print("Chat listener stopped.")
     except Exception as e:
-        # This will tell us exactly why it is crashing!
         print(f"CRASH ERROR: {e}") 
     finally:
-        # Turn the dot red if it stops or crashes
         await manager.broadcast({"type": "status", "status": "disconnected"})
 
 app = FastAPI()
