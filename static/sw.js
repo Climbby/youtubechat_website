@@ -1,4 +1,4 @@
-const CACHE_NAME = "stream-chat-v3";
+const CACHE_NAME = "stream-chat-v4";
 const ASSETS = [
   "/",
   "/static/style.css",
@@ -32,8 +32,8 @@ self.addEventListener("activate", (event) => {
             console.log("Deleting old cache:", cache);
             return caches.delete(cache);
           }
-        })
+        }),
       );
-    })
+    }),
   );
 });
