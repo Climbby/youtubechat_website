@@ -73,3 +73,88 @@ body {
   border: none !important;
   background: transparent !important;
 }
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+.modal-overlay.hidden {
+  display: none;
+}
+.modal-content {
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+.modal-content h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+.modal-buttons-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+}
+.btn-jartex {
+  background: #d97706;
+  color: white;
+} /* Orange-ish */
+.btn-pika {
+  background: #eab308;
+  color: black;
+} /* Yellow-ish */
+.btn-none {
+  width: 100%;
+  background: #4b5563;
+  color: white;
+}
+
+/* Toast Styles */
+.toast-container {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.toast.success {
+  background-color: #10b981;
+} /* Green */
+.toast.info {
+  background-color: #3b82f6;
+} /* Blue */
+.toast.error {
+  background-color: #ef4444;
+} /* Red */

@@ -1,15 +1,19 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from collections import deque
+from dotenv import load_dotenv
 
 import pytchat
 import asyncio
 import requests
 import re
+import os
 
-# Replace with your actual handle
+load_dotenv()
 CHANNEL_HANDLE = "@climbby"
+NODE_LXC_IP = os.getenv("NODE_LXC_IP", "127.0.0.1")
 
 class ConnectionManager:
     def __init__(self):
@@ -98,7 +102,18 @@ async def chat_listener(video_id: str):
     finally:
         await manager.broadcast({"type": "status", "status": "disconnected"})
 
+origins = [
+    "https://youtube-chat-website.tail2fdcaf.ts.net",
+    "http://localhost:8001",
+]
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -148,6 +163,24 @@ async def manifest():
 async def service_worker():
     from fastapi.responses import FileResponse
     return FileResponse("static/sw.js")
+
+@app.get("/trigger-discord/{server_name}")
+async def trigger_discord(server_name: str):
+    video_id = await asyncio.to_thread(get_live_video_id)
+
+    if video_id:
+        current_url = f"https://www.youtube.com/watch?v={video_id}"
+    else:
+        current_url = f"https://www.youtube.com/@climbby/live"
+    
+    # Send the URL as a query parameter to the Node.js automation
+    url = f"http://{NODE_LXC_IP}:3000/command/{server_name}?stream_url={current_url}"
+    
+    try:
+        response = await asyncio.to_thread(lambda: requests.get(url, timeout=40))
+        return {"status": "success" if response.status_code == 200 else "error"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

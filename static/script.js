@@ -34,6 +34,7 @@ function connect() {
         if (data.status === "connected") {
           dot.style.backgroundColor = "#00ff00"; // Green
           requestWakeLock();
+          document.getElementById("server-modal").classList.remove("hidden");
         } else {
           dot.style.backgroundColor = "red";
         }
@@ -127,3 +128,49 @@ document.addEventListener("visibilitychange", () => {
 
 connect();
 requestWakeLock();
+
+// --- Modal & Toast Logic ---
+function hideModal() {
+  document.getElementById("server-modal").classList.add("hidden");
+}
+
+function showToast(message, type) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  // Auto-remove the toast after 4 seconds
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 500);
+  }, 4000);
+}
+
+async function sendServerCommand(serverName) {
+  hideModal();
+  showToast(`Sending command to ${serverName}...`, "info");
+
+  try {
+    const response = await fetch(`/trigger-discord/${serverName}`);
+    const result = await response.json();
+
+    if (result.status === "success") {
+      showToast(`Command successfully sent to ${serverName}!`, "success");
+    } else {
+      showToast(`Failed: ${result.message}`, "error");
+    }
+  } catch (err) {
+    showToast(`Error communicating with backend`, "error");
+  }
+}
+
+// Event Listeners for buttons
+document
+  .getElementById("btn-jartex")
+  .addEventListener("click", () => sendServerCommand("jartex"));
+document
+  .getElementById("btn-pika")
+  .addEventListener("click", () => sendServerCommand("pika"));
+document.getElementById("btn-none").addEventListener("click", hideModal);
