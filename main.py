@@ -173,8 +173,10 @@ async def trigger_discord(server_name: str):
     else:
         current_url = f"https://www.youtube.com/@climbby/live"
     
-    # Send the URL as a query parameter to the Node.js automation
-    url = f"http://{NODE_LXC_IP}:3000/command/{server_name}?stream_url={current_url}"
+    if server_name.lower() == "none":
+        url = f"http://{NODE_LXC_IP}:3000/send?content={current_url}&type=message"
+    else:
+        url = f"http://{NODE_LXC_IP}:3000/send?content={current_url}&type=media&server={server_name}"
     
     try:
         response = await asyncio.to_thread(lambda: requests.get(url, timeout=40))

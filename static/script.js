@@ -173,4 +173,6 @@ document
 document
   .getElementById("btn-pika")
   .addEventListener("click", () => sendServerCommand("pika"));
-document.getElementById("btn-none").addEventListener("click", hideModal);
+document
+  .getElementById("btn-none")
+  .addEventListener("click", () => sendServerCommand("none"));
