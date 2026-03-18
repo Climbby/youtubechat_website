@@ -174,9 +174,9 @@ async def trigger_discord(server_name: str):
         current_url = f"https://www.youtube.com/@climbby/live"
     
     if server_name.lower() == "none":
-        url = f"http://{NODE_LXC_IP}:3000/send?content={current_url}&type=message"
+        url = f"http://{NODE_LXC_IP}:3000/send?content={current_url}"
     else:
-        url = f"http://{NODE_LXC_IP}:3000/send?content={current_url}&type=media&server={server_name}"
+        url = f"http://{NODE_LXC_IP}:3000/send?content={current_url}&server={server_name}"
     
     try:
         response = await asyncio.to_thread(lambda: requests.get(url, timeout=40))
